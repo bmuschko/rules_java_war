@@ -1,0 +1,15 @@
+= Bazel rules for creating a Java Web Archive (WAR)
+
+== Setup
+
+----
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "io_bazel_rules_java_war",
+    urls = [""],
+    sha256 = "",
+)
+load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
+go_rules_dependencies()
+go_register_toolchains()
