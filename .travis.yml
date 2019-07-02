@@ -1,0 +1,23 @@
+dist: xenial
+install: true
+language: java
+
+jdk:
+  - openjdk8
+
+env:
+  global:
+    - BAZEL_VERSION="0.27.0"
+    - GENERIC_PROJECTS_DIR="$TRAVIS_BUILD_DIR/generic"
+    - JAVA_PROJECTS_DIR="$TRAVIS_BUILD_DIR/java"
+
+before_install:
+  - sudo apt-get install pkg-config zip g++ zlib1g-dev unzip python3
+  - wget -O install.sh "https://github.com/bazelbuild/bazel/releases/download/$BAZEL_VERSION/bazel-$BAZEL_VERSION-installer-linux-x86_64.sh"
+  - chmod +x install.sh
+  - ./install.sh --user
+  - rm -f install.sh
+
+script:
+  - bazel test //tests:test-suite
+  - bazel build //java_war:java-war-docs

@@ -1,7 +1,14 @@
 = Bazel rules for creating a Java Web Archive (WAR)
 
+== Overview
+
+The rules provide a way for creating a https://docs.oracle.com/javaee/6/tutorial/doc/bnadx.html[Java Web Archive (WAR)]. The project is compatible with the standard https://github.com/bazelbuild/rules_java[rules_java] and https://github.com/bazelbuild/rules_jvm_external[rules_jvm_external].
+
 == Setup
 
+The easiest way to use the rules is by adding the following to your `WORKSPACE` file:
+
+[source,python]
 ----
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
@@ -10,6 +17,210 @@ http_archive(
     urls = [""],
     sha256 = "",
 )
-load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
-go_rules_dependencies()
-go_register_toolchains()
+----
+
+== Basic Example
+
+Suppose you are following the typical directory structure for a Java web application:
+
+----
+.
+├── BUILD
+├── WORKSPACE
+└── src
+    └── main
+        ├── java
+        │   └── com
+        │       └── bmuschko
+        │           └── web
+        │               └── SimpleServlet.java
+        └── webapp
+            ├── WEB-INF
+            │   └── web.xml
+            ├── css
+            │   └── style.css
+            ├── index.html
+            └── js
+                └── dynamic.js
+----
+
+To build the WAR file for the application, a `BUILD` on the root level could look as follows:
+
+[source,python]
+----
+load("@io_bazel_rules_java_war//java_war:defs.bzl", "java_war")
+
+java_war(
+    name = "minimal",
+    java_srcs = glob(["src/main/java/**/*.java"]),
+    deps = [
+        "@maven//:org_mortbay_jetty_servlet_api",
+        "@maven//:ch_qos_logback_logback_classic",
+    ],
+)
+----
+
+Under the hood, the macro named `java_war` will generate the `java_library` of the application and then include it as dependency for the WAR file.
+
+The result WAR file contains the content shown below. The rule will include the transitive closure of runtime dependencies. The dependency `org_mortbay_jetty_servlet_api` was declared as "compile-only" dependency and therefore isn't included.
+
+----
+$ java -tf minimal.war
+WEB-INF/web.xml
+css/style.css
+index.html
+js/dynamic.js
+WEB-INF/lib/liblibextdeps.jar
+WEB-INF/lib/logback-classic-1.1.2.jar
+WEB-INF/lib/slf4j-api-1.7.6.jar
+WEB-INF/lib/logback-core-1.1.2.jar
+----
+
+== API
+
+=== war
+
+++++
+<pre>
+war(<a href="#war-name">name</a>, <a href="#war-compression">compression</a>, <a href="#war-deps">deps</a>, <a href="#war-web_app_root">web_app_root</a>, <a href="#war-web_app_srcs">web_app_srcs</a>)
+</pre>
+++++
+
+Rule for generating a Java Web Archive (WAR).
+
+
+==== Attributes
+
+++++
+<table class="params-table">
+  <colgroup>
+    <col class="col-param" />
+    <col class="col-description" />
+  </colgroup>
+  <tbody>
+    <tr id="war-name">
+      <td><code>name</code></td>
+      <td>
+        <a href="https://bazel.build/docs/build-ref.html#name">Name</a>; required
+        <p>
+          A unique name for this target.
+        </p>
+      </td>
+    </tr>
+    <tr id="war-compression">
+      <td><code>compression</code></td>
+      <td>
+        Boolean; required
+        <p>
+          Enables compression for the WAR file.
+        </p>
+      </td>
+    </tr>
+    <tr id="war-deps">
+      <td><code>deps</code></td>
+      <td>
+        <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a>; optional
+        <p>
+          Dependencies for this target.
+        </p>
+      </td>
+    </tr>
+    <tr id="war-web_app_root">
+      <td><code>web_app_root</code></td>
+      <td>
+        String; required
+        <p>
+          Root directory containing web application files (e.g. web.xml, CSS or JavaScript files).
+        </p>
+      </td>
+    </tr>
+    <tr id="war-web_app_srcs">
+      <td><code>web_app_srcs</code></td>
+      <td>
+        <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a>; required
+        <p>
+          Source files to be included fromt the web application root directory.
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+++++
+
+=== java_war
+
+++++
+<pre>
+java_war(<a href="#java_war-name">name</a>, <a href="#java_war-web_app_dir">web_app_dir</a>, <a href="#java_war-java_srcs">java_srcs</a>, <a href="#java_war-deps">deps</a>, <a href="#java_war-compression">compression</a>, <a href="#java_war-kwargs">kwargs</a>)
+</pre>
+++++
+
+Creates a Java Web Archive (WAR).
+
+Automatically creates a Java library and bundles it with the web application files and any dependencies.
+For more information on the internal structure of a WAR file, see the https://docs.oracle.com/javaee/6/tutorial/doc/bnadx.html[official documentation].
+
+
+==== Parameters
+
+++++
+<table class="params-table">
+  <colgroup>
+    <col class="col-param" />
+    <col class="col-description" />
+  </colgroup>
+  <tbody>
+    <tr id="java_war-name">
+      <td><code>name</code></td>
+      <td>
+        required.
+        <p>
+          A unique name for this rule.
+        </p>
+      </td>
+    </tr>
+    <tr id="java_war-web_app_dir">
+      <td><code>web_app_dir</code></td>
+      <td>
+        optional. default is <code>"src/main/webapp"</code>
+        <p>
+          The root web application directory.
+        </p>
+      </td>
+    </tr>
+    <tr id="java_war-java_srcs">
+      <td><code>java_srcs</code></td>
+      <td>
+        optional. default is <code>[]</code>
+        <p>
+          Java source files for compilation.
+        </p>
+      </td>
+    </tr>
+    <tr id="java_war-deps">
+      <td><code>deps</code></td>
+      <td>
+        optional. default is <code>[]</code>
+        <p>
+          Dependencies for this java_library target.
+        </p>
+      </td>
+    </tr>
+    <tr id="java_war-compression">
+      <td><code>compression</code></td>
+      <td>
+        optional. default is <code>False</code>
+        <p>
+          Enables compression for the WAR.
+        </p>
+      </td>
+    </tr>
+    <tr id="java_war-kwargs">
+      <td><code>kwargs</code></td>
+      <td>
+        optional.
+      </td>
+    </tr>
+  </tbody>
+</table>
+++++
