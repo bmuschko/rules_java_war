@@ -8,8 +8,6 @@ jdk:
 env:
   global:
     - BAZEL_VERSION="0.27.0"
-    - GENERIC_PROJECTS_DIR="$TRAVIS_BUILD_DIR/generic"
-    - JAVA_PROJECTS_DIR="$TRAVIS_BUILD_DIR/java"
 
 before_install:
   - sudo apt-get install pkg-config zip g++ zlib1g-dev unzip python3
