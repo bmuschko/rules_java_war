@@ -8,6 +8,7 @@ jdk:
 env:
   global:
     - BAZEL_VERSION="0.27.0"
+    - EXAMPLES_DIR="$TRAVIS_BUILD_DIR/examples"
 
 before_install:
   - sudo apt-get install pkg-config zip g++ zlib1g-dev unzip python3
@@ -17,5 +18,9 @@ before_install:
   - rm -f install.sh
 
 script:
+  # Execute tests and generate documentation for rules
   - bazel test //tests:test-suite
   - bazel build //java_war:java-war-docs
+
+  # Execute example projects
+  - cd $EXAMPLES_DIR/minimal; bazel build //:web-app
