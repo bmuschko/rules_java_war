@@ -65,19 +65,21 @@ java_war(
 
 Under the hood, the macro named `java_war` will generate the `java_library` of the application and then include it as dependency for the WAR file.
 
+[source,bash]
 ----
 $ bazel build //:web-app
-  INFO: Analyzed target //:web-app (17 packages loaded, 531 targets configured).
-  INFO: Found 1 target...
-  Target //:web-app up-to-date:
-    bazel-bin/web-app.war
-  INFO: Elapsed time: 7.440s, Critical Path: 5.30s
-  INFO: 4 processes: 3 darwin-sandbox, 1 worker.
-  INFO: Build completed successfully, 5 total actions
+INFO: Analyzed target //:web-app (17 packages loaded, 531 targets configured).
+INFO: Found 1 target...
+Target //:web-app up-to-date:
+bazel-bin/web-app.war
+INFO: Elapsed time: 7.440s, Critical Path: 5.30s
+INFO: 4 processes: 3 darwin-sandbox, 1 worker.
+INFO: Build completed successfully, 5 total actions
 ----
 
 The result WAR file contains the content shown below. The rule will include the transitive closure of runtime dependencies. The dependency `org_mortbay_jetty_servlet_api` was declared as "compile-only" dependency and therefore isn't included.
 
+[source,bash]
 ----
 $ cd bazel-bin
 $ jar -tf web-app.war
