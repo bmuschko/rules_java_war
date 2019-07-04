@@ -24,3 +24,4 @@ script:
 
   # Execute example projects
   - cd $EXAMPLES_DIR/minimal; bazel build //:web-app
+  - cd $EXAMPLES_DIR/custom; bazel build //:web-app
