@@ -54,7 +54,7 @@ To build the WAR file for the application, a `BUILD` on the root level could loo
 load("@io_bazel_rules_java_war//java_war:defs.bzl", "java_war")
 
 java_war(
-    name = "minimal",
+    name = "web-app",
     java_srcs = glob(["src/main/java/**/*.java"]),
     deps = [
         "@maven//:org_mortbay_jetty_servlet_api",
@@ -65,10 +65,22 @@ java_war(
 
 Under the hood, the macro named `java_war` will generate the `java_library` of the application and then include it as dependency for the WAR file.
 
+----
+$ bazel build //:web-app
+  INFO: Analyzed target //:web-app (17 packages loaded, 531 targets configured).
+  INFO: Found 1 target...
+  Target //:web-app up-to-date:
+    bazel-bin/web-app.war
+  INFO: Elapsed time: 7.440s, Critical Path: 5.30s
+  INFO: 4 processes: 3 darwin-sandbox, 1 worker.
+  INFO: Build completed successfully, 5 total actions
+----
+
 The result WAR file contains the content shown below. The rule will include the transitive closure of runtime dependencies. The dependency `org_mortbay_jetty_servlet_api` was declared as "compile-only" dependency and therefore isn't included.
 
 ----
-$ java -tf minimal.war
+$ cd bazel-bin
+$ jar -tf web-app.war
 WEB-INF/web.xml
 css/style.css
 index.html
