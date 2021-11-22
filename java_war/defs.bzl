@@ -26,7 +26,12 @@ def _collect_runtime_deps(deps):
 
 def _add_runtime_deps_args(zipper_args, runtime_deps):
     for runtime_dep in runtime_deps:
-        name = "WEB-INF/lib/" + runtime_dep.basename + "=" + runtime_dep.path
+        if runtime_dep.owner.package:
+            path_in_war = "%s/%s" % (runtime_dep.owner.package, runtime_dep.basename)
+        else:
+            path_in_war = runtime_dep.basename
+        path_in_war = path_in_war.replace("/", "_").replace("=", "_")
+        name = "WEB-INF/lib/" + path_in_war + "=" + runtime_dep.path
         zipper_args.append(name)
 
 def _war_impl(ctx):
